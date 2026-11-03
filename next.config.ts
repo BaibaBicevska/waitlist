@@ -8,7 +8,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   images: {
     // Google profile pictures. next/image refuses external hosts not listed here.
-    remotePatterns: [new URL("https://lh3.googleusercontent.com/**")],
+    // Google serves them from lh3, lh4, lh5… so allow every subdomain.
+    remotePatterns: [{ protocol: "https", hostname: "*.googleusercontent.com" }],
   },
   partialPrefetching: true,
   turbopack: {

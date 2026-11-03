@@ -1,18 +1,41 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import { SleepyBackground } from "./sleepy-background";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { JoinWithGoogleButton, LogOutButton } from "./auth-buttons";
 
 // Reads the login cookie, so it renders per request inside <Suspense>.
-async function AuthArea() {
+async function AuthArea({
+  searchParams,
+}: {
+  searchParams: PageProps<"/">["searchParams"];
+}) {
+  if (!supabaseConfigured) {
+    return (
+      <p role="alert" className="text-rose-300">
+        Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.
+      </p>
+    );
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return <JoinWithGoogleButton />;
+    const { error } = await searchParams;
+    return (
+      <div className="flex flex-col items-center gap-3">
+        {error && (
+          <p role="alert" className="text-rose-300">
+            Login didn&apos;t work. Please try again.
+          </p>
+        )}
+        <JoinWithGoogleButton />
+      </div>
+    );
   }
 
   // RLS only lets a user read their own row, so this returns 0 or 1 rows.
@@ -23,7 +46,7 @@ async function AuthArea() {
     .maybeSingle();
 
   const meta = user.user_metadata;
-  const firstName = (meta.full_name ?? user.email ?? "").split(" ")[0];
+  const firstName = (meta.full_name || user.email || "").split(" ")[0];
 
   return (
     <div className="flex w-full max-w-xl flex-col items-center gap-5">
@@ -71,7 +94,7 @@ async function AuthArea() {
   );
 }
 
-export default function Home() {
+export default function Home({ searchParams }: PageProps<"/">) {
   return (
     <main className="relative isolate flex flex-1 flex-col items-center justify-center gap-6 px-6 py-16 text-center font-sans">
       <SleepyBackground />
@@ -82,7 +105,7 @@ export default function Home() {
         Podcasts that get quieter as you fall asleep.
       </p>
       <Suspense fallback={<div className="h-12" />}>
-        <AuthArea />
+        <AuthArea searchParams={searchParams} />
       </Suspense>
     </main>
   );
