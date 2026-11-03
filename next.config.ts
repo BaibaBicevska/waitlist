@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
   },
   cacheComponents: true,
+  images: {
+    // Google profile pictures. next/image refuses external hosts not listed here.
+    remotePatterns: [new URL("https://lh3.googleusercontent.com/**")],
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {
