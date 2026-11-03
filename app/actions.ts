@@ -25,7 +25,7 @@ export async function joinWaitlist(
   const supabase = await createClient();
   const { error } = await supabase
     .from("waitlist")
-    .insert({ user_id: null, email, full_name: name });
+    .insert({ source: "form", email, full_name: name });
 
   // 23505 = unique violation: this email is already on the list. Show the
   // same thank-you, so the form doesn't reveal who has signed up.

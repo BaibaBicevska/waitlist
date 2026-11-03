@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       // in before, or signed up with the form), the unique constraints reject
       // the insert with 23505, which is fine: there is never a second row.
       const { error: saveError } = await supabase.from("waitlist").insert({
+        source: "google",
         user_id: user.id,
         email: user.email?.toLowerCase(),
         full_name: user.user_metadata.full_name ?? null,
