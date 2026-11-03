@@ -2,7 +2,26 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { SleepyBackground } from "./sleepy-background";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
-import { JoinWithGoogleButton, LogOutButton } from "./auth-buttons";
+import {
+  JoinWithGoogleButton,
+  LogOutButton,
+  SignUpForm,
+  ThankYou,
+} from "./auth-buttons";
+
+function SignInOptions({ disabled = false }) {
+  return (
+    <div className="flex w-full max-w-sm flex-col items-center gap-4">
+      <JoinWithGoogleButton disabled={disabled} />
+      <div className="flex w-full items-center gap-3 text-sm text-indigo-300">
+        <span className="h-px flex-1 bg-white/20" />
+        or
+        <span className="h-px flex-1 bg-white/20" />
+      </div>
+      <SignUpForm disabled={disabled} />
+    </div>
+  );
+}
 
 // Reads the login cookie, so it renders per request inside <Suspense>.
 async function AuthArea({
@@ -17,8 +36,8 @@ async function AuthArea({
         "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, then rebuild.",
     );
     return (
-      <div className="flex flex-col items-center gap-3">
-        <JoinWithGoogleButton disabled />
+      <div className="flex w-full flex-col items-center gap-3">
+        <SignInOptions disabled />
         <p className="text-sm text-indigo-300">
           Sign-ups open very soon. Check back shortly!
         </p>
@@ -34,23 +53,24 @@ async function AuthArea({
   if (!user) {
     const { error } = await searchParams;
     return (
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex w-full flex-col items-center gap-3">
         {error && (
           <p role="alert" className="text-rose-300">
             Login didn&apos;t work. Please try again.
           </p>
         )}
-        <JoinWithGoogleButton />
+        <SignInOptions />
       </div>
     );
   }
 
-  // RLS only lets a user read their own row, so this returns 0 or 1 rows.
-  const { data: entry } = await supabase
+  // No filter needed: RLS only returns this user's own row, matched by
+  // user_id (Google) or by their verified email (signed up via the form).
+  const { data: entries } = await supabase
     .from("waitlist")
-    .select("created_at")
-    .eq("user_id", user.id)
-    .maybeSingle();
+    .select("id")
+    .limit(1);
+  const entry = entries?.[0];
 
   const meta = user.user_metadata;
   const firstName = (meta.full_name || user.email || "").split(" ")[0];
@@ -68,12 +88,7 @@ async function AuthArea({
           />
         )}
         {entry ? (
-          <div role="status" className="flex flex-col gap-1">
-            <h2 className="text-2xl font-semibold text-white">Thank you.</h2>
-            <p className="text-lg text-indigo-100">
-              You are in the waitlist. Your Podcast will reach you soon...
-            </p>
-          </div>
+          <ThankYou />
         ) : (
           <h2 className="text-2xl font-semibold text-rose-300">
             Logged in, but not saved to the waitlist yet.

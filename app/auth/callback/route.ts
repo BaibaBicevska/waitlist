@@ -13,17 +13,15 @@ export async function GET(request: NextRequest) {
     if (!error) {
       const { user } = data;
 
-      // Save to the waitlist. Logging in again hits the unique user_id and
-      // is ignored (ON CONFLICT DO NOTHING), so there is never a second row.
-      const { error: saveError } = await supabase.from("waitlist").upsert(
-        {
-          user_id: user.id,
-          email: user.email,
-          full_name: user.user_metadata.full_name ?? null,
-        },
-        { onConflict: "user_id", ignoreDuplicates: true },
-      );
-      if (saveError) {
+      // Save to the waitlist. If this user or email is already there (logged
+      // in before, or signed up with the form), the unique constraints reject
+      // the insert with 23505, which is fine: there is never a second row.
+      const { error: saveError } = await supabase.from("waitlist").insert({
+        user_id: user.id,
+        email: user.email?.toLowerCase(),
+        full_name: user.user_metadata.full_name ?? null,
+      });
+      if (saveError && saveError.code !== "23505") {
         console.error("Could not save to waitlist:", saveError.message);
       }
 
