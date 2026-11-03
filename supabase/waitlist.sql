@@ -11,7 +11,7 @@ create table public.waitlist (
   full_name  text check (full_name is null or char_length(full_name) between 1 and 100),
   email      text not null unique
              check (email = lower(email)
-                    and char_length(email) <= 254
+                    and char_length(email) <= 54
                     and email like '%_@_%.__%'),
   source     text not null check (source in ('google', 'form')),
   -- Only set for Google sign-ups: links the row to Authentication → Users.
