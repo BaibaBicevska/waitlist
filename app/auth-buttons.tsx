@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const buttonClass =
-  "h-12 rounded-full bg-foreground px-6 font-medium text-background transition-colors shadow-[0_0_20px_rgba(165,180,252,0.35)] hover:bg-white disabled:cursor-wait disabled:opacity-60";
+  "h-12 rounded-full bg-foreground px-6 font-medium text-background transition-colors shadow-[0_0_20px_rgba(165,180,252,0.35)] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60";
 
-export function JoinWithGoogleButton() {
+export function JoinWithGoogleButton({ disabled = false }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +31,7 @@ export function JoinWithGoogleButton() {
       <button
         type="button"
         onClick={signIn}
-        disabled={pending}
+        disabled={disabled || pending}
         className={buttonClass}
       >
         {pending ? "Opening Google…" : "Join with Google"}

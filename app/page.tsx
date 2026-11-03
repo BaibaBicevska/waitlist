@@ -11,11 +11,18 @@ async function AuthArea({
   searchParams: PageProps<"/">["searchParams"];
 }) {
   if (!supabaseConfigured) {
+    // For the developer: visible in the terminal / hosting logs, not to visitors.
+    console.error(
+      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and " +
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, then rebuild.",
+    );
     return (
-      <p role="alert" className="text-rose-300">
-        Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and
-        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.
-      </p>
+      <div className="flex flex-col items-center gap-3">
+        <JoinWithGoogleButton disabled />
+        <p className="text-sm text-indigo-300">
+          Sign-ups open very soon. Check back shortly!
+        </p>
+      </div>
     );
   }
 
